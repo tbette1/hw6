@@ -13,7 +13,7 @@ public class Note {
      * @param p the pitch of this note
      * @param octave the octave of this note
      */
-    public Note(Pitch p, int octave) {
+    public Note(Pitch p, int octave) throws IllegalArgumentException {
         if (octave < 0) {
             throw new IllegalArgumentException("Octaves cannot be less than 0.");
         }
@@ -68,7 +68,7 @@ public class Note {
      * @param str String to be parsed into a note.
      * @return the correct note according to the given String.
      */
-    public static Note parseNote(String str) {
+    public static Note parseNote(String str) throws IllegalArgumentException {
         String pitch = str.substring(0, str.length() - 1);
         if (pitch.length() > 2 || pitch.length() < 1) {
             throw new IllegalArgumentException("Invalid note");
@@ -123,7 +123,7 @@ public class Note {
      *             beat 16, selecting any beat between 10 and 16
      *             will delete the entire note, play and sustain.
      */
-    public void delete(int beat) {
+    public void delete(int beat) throws IllegalArgumentException {
         if (this.actions.get(beat).equals(Attribute.Rest)) {
             throw new IllegalArgumentException("No note to delete here.");
         }
@@ -196,10 +196,4 @@ public class Note {
         }
         return i;
     }
-
-
-
-
 }
-
-
