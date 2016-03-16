@@ -40,7 +40,7 @@ public enum Pitch {
      * @param str the string to be parsed
      * @return the pitch represented by the given string
      */
-    public static Pitch parsePitch(String str) {
+    public static Pitch parsePitch(String str) throws IllegalArgumentException {
         switch(str) {
             case "C":
                 return Pitch.C;
