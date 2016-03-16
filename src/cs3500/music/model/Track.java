@@ -2,17 +2,38 @@ package cs3500.music.model;
 import java.util.*;
 
 public class Track implements Song {
-    Set<Note> notes;
+    private List <Note> notes;
 
-    @Override
-    public void add(Note n, int beat, int duration) {
-
+    /**
+     * Constructs a new Track object with an empty set of notes.
+     */
+    public Track() {
+        notes = new ArrayList<Note>();
     }
 
 
     @Override
-    public void delete(Note n, int beat) {
+    public void add(Note n, int beat, int duration) {
+        int ind = notes.indexOf(n);
+        if (ind == -1) {
+            n.add(beat, duration);
+            notes.add(n);
+        }
+        else {
+            notes.get(ind).add(beat, duration);
+        }
+    }
 
+
+    @Override
+    public void delete(Note n, int beat) throws IllegalArgumentException {
+        int ind = notes.indexOf(n);
+        if (ind == -1) {
+            throw new IllegalArgumentException("The given note is not contained in this track.");
+        }
+        else {
+            notes.get(ind).delete(beat);
+        }
     }
 
     @Override
@@ -52,3 +73,4 @@ public class Track implements Song {
         return last;
     }
 }
+
