@@ -3,6 +3,12 @@ package cs3500.music.model;
 
 public interface Song {
 
+
+    /**
+     * @return this Song's list of notes.
+     */
+    Collection<Note> getNotes();
+    
     /**
      * Adds the given note to this song at the given beat for the
      * given duration.
