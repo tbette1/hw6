@@ -6,6 +6,8 @@ import java.util.ArrayList;
 public class Note {
     Pitch pitch;
     int octave;
+    int instrument;
+    int volume;
     ArrayList<Attribute> actions;
 
     /**
@@ -13,7 +15,7 @@ public class Note {
      * @param p the pitch of this note
      * @param octave the octave of this note
      */
-    public Note(Pitch p, int octave) throws IllegalArgumentException {
+    public Note(Pitch p, int octave, int instrument, int volume) throws IllegalArgumentException {
         if (octave < 0) {
             throw new IllegalArgumentException("Octaves cannot be less than 0.");
         }
@@ -38,7 +40,8 @@ public class Note {
      */
     public boolean equals(Object o) {
         if (o instanceof Note) {
-            return (o.hashCode() == this.hashCode());
+            return (o.hashCode() == this.hashCode() &&
+                        this.instrument == ((Note) o).instrument);
         }
         return false;
     }
@@ -88,72 +91,12 @@ public class Note {
             throw new IllegalArgumentException("Invalid note");
         }
         try {
-            return new Note(p, octave);
+            //return new Note(p, octave);   *******TODO FIX
         }
         catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid note");
         }
-    }
-
-    /**
-     * Adds instructions for this note to play.
-     * @param startBeat beat on which to start playing this note.
-     * @param length how many beats to sustain this note for.
-     */
-    public void add(int startBeat, int length) {
-        if (!(startBeat < this.actions.size())) {
-            for (int i = this.actions.size() - 1; i < startBeat + length; i++) {
-                actions.add(Attribute.Rest);
-            }
-        }
-        actions.set(startBeat, Attribute.Play);
-        for (int i = 1; i < length; i++) {
-            actions.set(startBeat + i, Attribute.Sustain);
-        }
-    }
-
-    /**
-     * Deletes an instruction for this note.
-     * If there is no instruction at this index,
-     * throws an IllegalArgumentException.
-     * @param beat beat on which this note is playing.
-     *             NOTE: will delete all plays and sustains
-     *             surrounding the given beat. For example,
-     *             if the note begins on beat 10 and sustains until
-     *             beat 16, selecting any beat between 10 and 16
-     *             will delete the entire note, play and sustain.
-     */
-    public void delete(int beat) throws IllegalArgumentException {
-        if (this.actions.get(beat).equals(Attribute.Rest)) {
-            throw new IllegalArgumentException("No note to delete here.");
-        }
-        int start = -1;
-        int end = -1;
-
-        if (this.actions.get(beat).equals(Attribute.Play)) {
-            start = beat;
-        }
-        else {
-            int i = beat;
-            while (this.actions.get(i).equals(Attribute.Sustain)) {
-                i--;
-            }
-            start = i;
-        }
-        if ((start < this.actions.size() - 1)) {
-            int i = start + 1;
-            while (this.actions.get(i).equals(Attribute.Sustain)) {
-                i++;
-            }
-            end = i;
-        }
-        else {
-            end = start + 1;
-        }
-
-        for (int j = start; j < end; j++) {
-            this.actions.set(j, Attribute.Rest);
-        }
+        return null; // TODO fix this pls
     }
 
     /**
@@ -197,3 +140,5 @@ public class Note {
         return i;
     }
 }
+
+

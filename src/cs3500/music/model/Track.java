@@ -13,26 +13,59 @@ public class Track implements Song {
 
 
     @Override
-    public void add(Note n, int beat, int duration) {
+    public void addNote(Note n, List<Attribute> attributes, int startBeat) {
         int ind = notes.indexOf(n);
         if (ind == -1) {
-            n.add(beat, duration);
-            notes.add(n);
+            ArrayList<Attribute> toAddActions = new ArrayList<Attribute>();
+            for (int i = 0; i < startBeat; i++) {
+                toAddActions.add(Attribute.Rest);
+            }
+            for (int i = 0; i < attributes.size(); i++) {
+                toAddActions.add(startBeat + i, attributes.get(i));
+            }
+            n.actions = toAddActions;
         }
         else {
-            notes.get(ind).add(beat, duration);
+            Note temp = notes.get(ind);
+            int diff = startBeat - temp.getPlayLength();
+            if (diff > 0) {
+                for (int i = 0; i < diff; i++) {
+                    temp.actions.add(Attribute.Rest);
+                }
+                for (int i = 0; i < attributes.size(); i++) {
+                    temp.actions.add(attributes.get(i));
+                }
+            }
+            else {
+                for (int i = 0; i < attributes.size() - diff; i++) {
+                    temp.actions.add(Attribute.Rest);
+                }
+                int i = startBeat;
+                for (Attribute a : attributes) {
+                    if (!a.equals(Attribute.Rest)) {
+                        temp.actions.set(i, a);
+                        i++;
+                    }
+                }
+            }
         }
     }
 
+    @Override
+    public ArrayList<Note> getNotes() {
+        return new ArrayList(this.notes);
+    }
 
     @Override
-    public void delete(Note n, int beat) throws IllegalArgumentException {
+    public void delete(Note n, ArrayList<Integer> beats) throws IllegalArgumentException {
         int ind = notes.indexOf(n);
         if (ind == -1) {
             throw new IllegalArgumentException("The given note is not contained in this track.");
         }
         else {
-            notes.get(ind).delete(beat);
+            for (int i : beats) {
+                notes.get(ind).actions.set(i, Attribute.Rest);
+            }
         }
     }
 
@@ -73,4 +106,3 @@ public class Track implements Song {
         return last;
     }
 }
-
