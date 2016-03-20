@@ -41,5 +41,16 @@ public interface Song {
      */
     Note lastNote();
 
+    /**
+     * @return an ArrayList containing all notes in this song. 
+     */
     ArrayList<Note> getNotes();
+    
+    /**
+     *  @return an ArrayList containing Strings representing all notes
+     *          in this song, sorted.
+     *  NOTE: does not include any notes in this same range of notes that
+     *  dont get played. 
+     */ 
+     ArrayList<String> getNoteNames();
 }
