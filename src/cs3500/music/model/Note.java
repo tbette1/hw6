@@ -58,14 +58,9 @@ public class Note {
      * @return a string representation of this note
      */
     public String toString() {
-        String out = this.pitch.toString() + this.octave;
-        if (out.length() == 2) {
-            return "  " + out + " ";
-        }
-        else {
-            return " " + out + " ";
-        }
+        return this.pitch.toString() + this.octave;
     }
+
 
     /**
      * @param str String to be parsed into a note.
