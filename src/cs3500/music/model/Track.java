@@ -57,6 +57,14 @@ public class Track implements Song {
     }
 
     @Override
+    public ArrayList<String> getNoteNames() {
+        ArrayList<String> names = new ArrayList<String>();
+        for (Note n : this.notes) {
+            names.add(n.toString());
+        }
+    }
+
+    @Override
     public void delete(Note n, ArrayList<Integer> beats) throws IllegalArgumentException {
         int ind = notes.indexOf(n);
         if (ind == -1) {
