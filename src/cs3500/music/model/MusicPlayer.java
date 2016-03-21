@@ -19,12 +19,20 @@ public class MusicPlayer {
      * @param s song to be added
      * @param beat beat at which to start adding this song
      */
-    public void addSong(Song s, int beat) {
+    public MusicPlayer addSong(Song s, int beat) {
         ArrayList<Note> notesToAdd = s.getNotes();
 
         for (Note n : notesToAdd) {
             this.track.addNote(n, n.actions, beat);
         }
+        return this;
+    }
+
+    /**
+     * @return this MusicPlayer's song.
+     */
+    public Song getSong() {
+        return this.track;
     }
 
     /**
@@ -33,13 +41,14 @@ public class MusicPlayer {
      * @param duration duration of note
      * @param beat beat on which to start playing this note
      */
-    public void addNote(Note n, int duration, int beat) {
+    public MusicPlayer addNote(Note n, int duration, int beat) {
         ArrayList<Attribute> toAdd = new ArrayList<Attribute>();
         toAdd.add(Attribute.Play);
         for (int i = 0; i < duration - 1; i++) {
             toAdd.add(Attribute.Sustain);
         }
         this.track.addNote(n, toAdd, beat);
+        return this;
     }
 
     /**
@@ -53,7 +62,7 @@ public class MusicPlayer {
      *             beat 16, selecting any beat between 10 and 16
      *             will delete the entire note, play and sustain.
      */
-    public void deleteNote(Note n, int beat) {
+    public MusicPlayer deleteNote(Note n, int beat) {
         int start = -1;
         int end = -1;
 
@@ -80,5 +89,6 @@ public class MusicPlayer {
         }
 
         this.track.delete(n, beatsToDelete);
+        return this;
     }
 }
