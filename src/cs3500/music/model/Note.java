@@ -172,6 +172,32 @@ public class Note {
     public ArrayList<Attribute> getActions() {
         return this.actions;
     }
+
+    /**
+     * @return an ArrayList of ArrayLists of size 2, where the 0th element represents
+     * the start beat of a play of this note, and the 1st element represents the duration.
+     * Every play of this note will be represented in its own ArrayList, held in the larger ArrayList.
+     */
+    public ArrayList<ArrayList<Integer>> getPlays() {
+        ArrayList<ArrayList<Integer>> notesPlayed = new ArrayList<ArrayList<Integer>>();
+        int index = 0;
+        int playing = 0;
+        for (int i = 0; i < actions.size(); i++) {
+            if (actions.get(i).equals(Attribute.Play)) {
+                notesPlayed.get(index).add(i);
+                playing = 1;
+            }
+            if (actions.get(i).equals(Attribute.Sustain)) {
+                playing ++;
+            }
+            if (actions.get(i).equals(Attribute.Rest) && playing != 0) {
+                notesPlayed.get(index).add(playing);
+                index ++;
+                playing = 0;
+            }
+        }
+        return notesPlayed;
+    }
 }
 
 
