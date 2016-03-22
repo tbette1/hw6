@@ -1,14 +1,65 @@
 package cs3500.music.model;
+import cs3500.music.util.CompositionBuilder;
+
 import java.util.*;
 
 public class Track implements Song {
     private List <Note> notes;
+    int tempo;
+
+    public static final class Builder implements CompositionBuilder<Song> {
+        ArrayList<Note> buildNotes;
+        int tempo = 100;
+
+        /**
+         * Constructs a new builder object.
+         */
+        public Builder() {
+            buildNotes = new ArrayList<Note>();
+        }
+
+        /**
+         * Adds a new note to this composition builder.
+         * @return this builder object.
+         */
+        public Builder addNote(int start, int end, int instrument, int pitch, int volume) {
+            Note n = Note.parseNoteFromInt(pitch, instrument, volume);
+            if (!buildNotes.contains(n)) {
+                buildNotes.add(n);
+            }
+            Note toChange = buildNotes.get(buildNotes.indexOf(n));
+            toChange.actions.set(start, Attribute.Play);
+            for (int i = start + 1; i <= end; i++) {
+                toChange.actions.set(i, Attribute.Sustain);
+            }
+
+            return this;
+        }
+
+        /**
+         * Sets the tempo for this composition builder.
+         * @return the builder object
+         */
+        public Builder setTempo(int tempo) {
+            this.tempo = tempo;
+            return this;
+        }
+
+        /**
+         * @return a new Track object with all of the notes added to this builder.
+         */
+        public Track build() {
+            return new Track(buildNotes, this.tempo);
+        }
+    }
+
 
     /**
      * Constructs a new Track object with an empty set of notes.
      */
-    public Track() {
-        notes = new ArrayList<Note>();
+    public Track(ArrayList<Note> notes, int tempo) {
+        this.notes = notes;
+        this.tempo = tempo;
     }
 
 
@@ -57,12 +108,30 @@ public class Track implements Song {
     }
 
     @Override
-    public ArrayList<String> getNoteNames() {
-        ArrayList<String> names = new ArrayList<String>();
-        for (Note n : this.notes) {
-            names.add(n.toString());
+    public ArrayList<Note> getAllNotesInRange() {
+        ArrayList<Note> fullList = new ArrayList<Note>();
+        fullList.add(this.firstNote());
+        while (!fullList.get(fullList.size() - 1).equals(this.lastNote())) {
+            Note n = fullList.get(fullList.size() - 1).getHalfStepUp();
+            if (this.notes.contains(n)) {
+                fullList.add(this.notes.get(this.notes.indexOf(n)));
+            }
+            else {
+                fullList.add(n);
+            }
         }
+        return fullList;
     }
+
+    @Override
+    public ArrayList<String> getNoteNames(ArrayList<Note> noteList) {
+        ArrayList<String> nameList = new ArrayList<String>();
+        for (Note n : noteList) {
+            nameList.add(n.toString());
+        }
+        return nameList;
+    }
+
 
     @Override
     public void delete(Note n, ArrayList<Integer> beats) throws IllegalArgumentException {

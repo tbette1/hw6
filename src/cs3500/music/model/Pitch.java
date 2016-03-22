@@ -122,4 +122,37 @@ public enum Pitch {
                 return this.name();
         }
     }
+
+    /**
+     * @return the pitch corresponding to the given value
+     * @param p [0,11] representing a pitch.
+     */
+    public static Pitch pitchFromVal(int p) {
+        switch(p) {
+            case 0:
+                return Pitch.C;
+            case 1:
+                return Pitch.CSharp;
+            case 2:
+                return Pitch.D;
+            case 3:
+                return Pitch.DSharp;
+            case 4:
+                return Pitch.E;
+            case 5:
+                return Pitch.F;
+            case 6:
+                return Pitch.FSharp;
+            case 7:
+                return Pitch.G;
+            case 8:
+                return Pitch.GSharp;
+            case 9:
+                return Pitch.A;
+            case 10:
+                return Pitch.ASharp;
+            default:
+                return Pitch.B;
+        }
+    }
 }

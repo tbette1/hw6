@@ -58,9 +58,14 @@ public class Note {
      * @return a string representation of this note
      */
     public String toString() {
-        return this.pitch.toString() + this.octave;
+        String out = this.pitch.toString() + this.octave;
+        if (out.length() == 2) {
+            return "  " + out + " ";
+        }
+        else {
+            return " " + out + " ";
+        }
     }
-
 
     /**
      * @param str String to be parsed into a note.
@@ -95,6 +100,18 @@ public class Note {
     }
 
     /**
+     * Parses a note from the given value.
+     * @param pitch [0,127] where 60 represents C4.
+     * @param instrument the instrument of this note
+     */
+    public static Note parseNoteFromInt(int pitch, int instrument, int volume) {
+        int pitchVal = pitch % 8;
+        int octave = pitch / 8;
+
+        return new Note(Pitch.pitchFromVal(pitchVal), octave, instrument, volume);
+    }
+
+    /**
      * @return true if this note's actions have anything other than rests, returns
      * false otherwise.
      */
@@ -122,6 +139,20 @@ public class Note {
     }
 
     /**
+     * @return a new note, a half step up from this one.
+     */
+    public Note getHalfStepUp() {
+        int o = -1;
+        if (this.pitch.halfStepUp().equals(Pitch.C)) {
+            o = this.octave + 1;
+        }
+        else {
+            o = this.octave;
+        }
+        return new Note(this.pitch.halfStepUp(), o, this.instrument, this.volume);
+    }
+
+    /**
      * @return the beat on which this note plays for the first time.
      */
     public int getFirstPlay() {
@@ -133,6 +164,13 @@ public class Note {
             i++;
         }
         return i;
+    }
+
+    /**
+     * @return this note's list of actions
+     */
+    public ArrayList<Attribute> getActions() {
+        return this.actions;
     }
 }
 
