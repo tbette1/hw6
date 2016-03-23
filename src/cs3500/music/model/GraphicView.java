@@ -1,81 +1,160 @@
 package cs3500.music.view;
+import cs3500.music.model.*;
 
-/**
- * Created by torybettencourt on 3/18/16.
- */
 import javax.swing.*;
 import java.awt.*;
-public class GraphicView implements GUIView {
-    private final int RECTANGLE_HEIGHT = 20; // can definitely bechanged
-    private final int RECTANGLE_WIDTH = 40; // can definitely be changed
-    private final int LINE_SEPARATOR_WIDTH = 3; // probably about right actually
+import java.util.ArrayList;
+public class GraphicView extends JFrame implements GUIView {
+    MusicPlayer mModel;
+    MeasurePanel[][] grid;
+    private JPanel displayPanel;
+    private static final int LINE_SEPARATOR_WIDTH = 3; // probably about right actually
+    private static final int TEXT_WIDTH = 20;
+    private static final int TEXT_HEIGHT = 25;
 
-    public JPanel createBaseGrid(int songLength, int numNotes) {
+
+    public GraphicView(MusicPlayer m) {
+        this.mModel = m;
+        initializeBaseGrid(2, 2);
+        this.displayPanel = baseGridPanel();
+        this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        this.getContentPane().add(displayPanel);
+        this.pack();
+        this.setSize(1000, 500);
+    }
+
+
+    /**
+     * @param songLength length of song
+     * @param numNotes number of notes in song
+     * @return a Base grid representing the possibilities of where notes can be
+     *         in the graphic view.
+     */
+    private void initializeBaseGrid (int songLength, int numNotes) {
+        int cols = (int) (songLength/4 + Math.ceil(songLength % 4));
+        grid = new MeasurePanel[numNotes][cols];
+        for (int j = 0; j < numNotes; j++) {
+            int vLoc = j * (MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
+
+            for (int i = 0; i < cols; i ++) {
+                int hLoc = i * (MeasurePanel.RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH ;
+                MeasurePanel mp = new MeasurePanel(hLoc, vLoc);
+                grid[j][i] = mp;
+            }
+        }
+    }
+
+    /**
+     * Get base grid panel
+     */
+    private JPanel baseGridPanel() {
         JPanel basePanel = new JPanel();
-        basePanel.setSize(400, 400);
+        basePanel.setSize(200, 200);
         basePanel.setBackground(Color.BLACK);
 
-        for (int j = 0; j < numNotes; j++) {
-            int vLoc = j * (RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[i].length; j++) {
+                MeasurePanel m = grid[i][j];
+                m.setBounds(m.x, m.y, MeasurePanel.RECTANGLE_WIDTH, MeasurePanel.RECTANGLE_HEIGHT);
+                basePanel.add(m);
 
-            for (int i = 0; i < songLength; i++) {
-                JPanel p = new JPanel();
-                p.setSize(RECTANGLE_WIDTH, RECTANGLE_HEIGHT);
-                p.setBackground(Color.GRAY);
-                int hLoc = i * (RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH ;
-                p.setLocation(hLoc, vLoc);
-                basePanel.add(p);
             }
         }
         return basePanel;
     }
 
     /**
-     *
-     * @param startBeat beat on which the note to be shown starts. IF this panel
-     *                  is created as the continuation of a panel before, startbeat
-     *                  should be -1.
-     * @param duration  duration of the note to be shown. IF this panel is created as
-     *                  the continuation of a panel before it, duration should be (the
-     *                  original note duration - the number of beats the note played in
-     *                  the measure before).
-     * @return a single measure Panel
-     * @throws IllegalStateException if the duration is greater than four. Meant to give instruction
-     *                               to create a continuation panel.
+     * @return a panel containing the beat numbers for the song.
      */
-    public static JPanel measurePanel(int startBeat, int duration) throws IllegalStateException {
-        if (startBeat + duration > 4) {
-            throw new IllegalStateException("Remaining beats cannot be expressed in this panel.");
+    private JPanel beatDisplay(){
+        JPanel beatPanel = new JPanel();
+        int l = mModel.getSong().getLength();
+        if (!(l % 4 == 0)) {
+            l = l + (4 - l % 4);
         }
 
-        JPanel np = new JPanel();
-        np.setSize(RECTANGLE_WIDTH, RECTANGLE_HEIGHT);
-        np.setBackground(Color.GRAY);
-        if (startBeat != -1) {
-            JPanel noteHead = new JPanel();
-            noteHead.setSize(RECTANGLE_WIDTH / 4, RECTANGLE_HEIGHT);
-            noteHead.setBackground(Color.BLACK);
-            noteHead.setLocation(RECTANGLE_WIDTH * (startBeat / 4), 0);
-            np.add(noteHead);
-
-            JPanel noteTail = new JPanel();
-            noteTail.setSize(RECTANGLE_WIDTH * ((duration - 1) / 4), RECTANGLE_HEIGHT);
-            noteTail.setBackground(Color.GREEN);
-            noteTail.setLocation(((RECTANGLE_WIDTH * (startBeat / 4)) * (duration - 1)), 0);
-            np.add(noteTail);
+        int x = 0;
+        for (int i = 0; i < l; i += 4) {
+            if (i % 16 == 0) {
+                JLabel numLabel = new JLabel(i + "");
+                numLabel.setSize(TEXT_WIDTH, TEXT_HEIGHT);
+                numLabel.setLocation(x, 0);
+                beatPanel.add(numLabel);
+            }
+            x += MeasurePanel.RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH;
         }
-        else {
-            JPanel note = new JPanel();
-            note.setSize(RECTANGLE_WIDTH * (duration / 4), RECTANGLE_HEIGHT);
-            note.setBackground(Color.GREEN);
-            note.setLocation(0, 0);
-            np.add(note);
-        }
-
-        return np;
+        return beatPanel;
     }
+
+    /**
+     * @return a panel containing all note names in this song.
+     */
+    private JPanel noteNameDisplay() {
+        JPanel namePanel = new JPanel();
+        ArrayList<String> notes = mModel.getSong().getNoteNames(mModel.getSong().getAllNotesInRange());
+        namePanel.setSize(MeasurePanel.RECTANGLE_HEIGHT, notes.size() * (MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH));
+        int y = LINE_SEPARATOR_WIDTH;
+        for (int i = 0; i < notes.size(); i++) {
+            JLabel nameLabel = new JLabel(notes.get(i));
+            nameLabel.setSize(TEXT_WIDTH, TEXT_HEIGHT);
+            nameLabel.setLocation(0, y);
+            namePanel.add(nameLabel);
+
+            y += MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH;
+        }
+        return namePanel;
+    }
+
+    /**
+     * @param noteNum Note number in the list of notes in this song.
+     * @param beatNum beat number of the panel we wish to get.
+     * @return a point representing the location of the top left corner of the panel.
+     */
+    private static Point locOfPanel(int noteNum, int beatNum) {
+        int y = noteNum * (MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
+        int x = (beatNum / 4) * (MeasurePanel.RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
+        return new Point(x, y);
+    }
+
+    /**
+     *
+     */
+    private void addNotesToGrid() throws IllegalStateException {
+        if (this.grid == null) {
+            throw new IllegalStateException("Grid not initialized");
+        }
+        ArrayList<Note> notes = this.mModel.getSong().getAllNotesInRange();
+        for (Note n : notes) {
+            ArrayList<ArrayList<Integer>> plays = n.getPlays();
+            for (ArrayList<Integer> play : plays) {
+                int startBeat = play.get(0);
+                int dur = play.get(1);
+
+                int noteNum = notes.indexOf(n);
+                try {
+                    grid[noteNum][startBeat/4].addNote((startBeat % 4), dur);
+                }
+                catch (IllegalStateException e) {
+                    grid[noteNum][startBeat/4].addNote((startBeat % 4), 4 - (startBeat % 4));
+                    grid[noteNum][startBeat/4 + 1].addNote(-1, dur - (4 - startBeat % 4));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void initialize(){
+        this.setVisible(true);
+    }
+
+    @Override
+    public Dimension getPreferredSize(){
+        return new Dimension(100, 100);
+    }
+
 
     public void display() {
-
+        initialize();
     }
+
 }
