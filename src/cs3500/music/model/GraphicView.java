@@ -1,62 +1,108 @@
 package cs3500.music.view;
-import cs3500.music.model.*;
+import cs3500.music.model.Attribute;
+import cs3500.music.model.MusicPlayer;
+import cs3500.music.model.Note;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.ArrayList;
+
 public class GraphicView extends JFrame implements GUIView {
     MusicPlayer mModel;
     MeasurePanel[][] grid;
     private JPanel displayPanel;
-    private static final int LINE_SEPARATOR_WIDTH = 3; // probably about right actually
-    private static final int TEXT_WIDTH = 20;
-    private static final int TEXT_HEIGHT = 25;
 
 
     public GraphicView(MusicPlayer m) {
         this.mModel = m;
-        initializeBaseGrid(2, 2);
-        this.displayPanel = baseGridPanel();
+        this.displayPanel = new JPanel();
+        displayPanel.setLayout(new BorderLayout());
+        displayPanel.setBorder(new EmptyBorder(1, 1, 1, 1));
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         this.getContentPane().add(displayPanel);
         this.pack();
-        this.setSize(1000, 500);
+        this.setSize(1100, 250);
+        this.setResizable(false);
     }
 
-
     /**
-     * @param songLength length of song
-     * @param numNotes number of notes in song
-     * @return a Base grid representing the possibilities of where notes can be
-     *         in the graphic view.
+     *  Creates the editor view grid.
      */
-    private void initializeBaseGrid (int songLength, int numNotes) {
-        int cols = (int) (songLength/4 + Math.ceil(songLength % 4));
-        grid = new MeasurePanel[numNotes][cols];
-        for (int j = 0; j < numNotes; j++) {
-            int vLoc = j * (MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
+    private JPanel createEditorGrid() {
+        JPanel basePanel = new JPanel();
+        basePanel.setBackground(Color.BLACK);
+        int rows = this.mModel.getSong().getAllNotesInRange().size();
+        int cols = this.mModel.getSong().getLength() + (this.mModel.getSong().getLength() % 4);
+        basePanel.setLayout(new GridLayout(rows, cols + 1, 0, 0));
+        for (int i = 0; i < rows; i++) {
+            ArrayList<Attribute> actions = this.mModel.getSong().getAllNotesInRange().get(i).getActions();
+            for (int j = 0; j < cols; j++) {
+                Border border = null;
+                if (j % 4 == 0) {
+                    border = new MatteBorder(1, 1, 1, 0, Color.BLACK);
+                }
+                else if (j % 4 == 3) {
+                    border = new MatteBorder(1, 0, 1, 1, Color.BLACK);
+                }
+                else {
+                    border = new MatteBorder(1, 0, 1, 0, Color.BLACK);
+                }
+                BeatPanel x = new BeatPanel(j % 4);
+                if (!this.mModel.getSong().getAllNotesInRange().get(i).plays()) {
+                    x.setBackground(Color.LIGHT_GRAY);
+                }
+                else if (actions == null) {
+                    x.setBackground(Color.LIGHT_GRAY);
+                }
+                else if (actions.size() <= j) {
+                    x.setBackground(Color.LIGHT_GRAY);
+                }
+                else if (actions.get(j).equals(Attribute.Play)) {
+                    x.setBackground(Color.BLACK);
+                }
+                else if (actions.get(j).equals(Attribute.Sustain)) {
+                    x.setBackground(Color.GREEN);
+                }
+                else {
+                    x.setBackground(Color.LIGHT_GRAY);
+                }
+                x.setBorder(border);
+                basePanel.add(x);
 
-            for (int i = 0; i < cols; i ++) {
-                int hLoc = i * (MeasurePanel.RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH ;
-                MeasurePanel mp = new MeasurePanel(hLoc, vLoc);
-                grid[j][i] = mp;
             }
         }
+        return basePanel;
     }
 
     /**
-     * Get base grid panel
+     *
+     * @param r number of rows for blank grid.
+     * @param c number of columns for blank grid.
+     * @return a blank editor grid.
      */
-    private JPanel baseGridPanel() {
+    public JPanel blankGrid(int r, int c) {
         JPanel basePanel = new JPanel();
-        basePanel.setSize(200, 200);
         basePanel.setBackground(Color.BLACK);
+        basePanel.setLayout(new GridLayout(r, c + 1, 0, 0));
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                Border border = null;
+                if (j % 4 == 0) {
+                    border = new MatteBorder(1, 1, 1, 0, Color.BLACK);
+                }
+                else if (j % 4 == 3) {
+                    border = new MatteBorder(1, 0, 1, 1, Color.BLACK);
+                }
+                else {
+                    border = new MatteBorder(1, 0, 1, 0, Color.BLACK);
+                }
+                BeatPanel x = new BeatPanel(j % 4);
 
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[i].length; j++) {
-                MeasurePanel m = grid[i][j];
-                m.setBounds(m.x, m.y, MeasurePanel.RECTANGLE_WIDTH, MeasurePanel.RECTANGLE_HEIGHT);
-                basePanel.add(m);
+                x.setBorder(border);
+                basePanel.add(x);
 
             }
         }
@@ -67,83 +113,47 @@ public class GraphicView extends JFrame implements GUIView {
      * @return a panel containing the beat numbers for the song.
      */
     private JPanel beatDisplay(){
-        JPanel beatPanel = new JPanel();
-        int l = mModel.getSong().getLength();
-        if (!(l % 4 == 0)) {
-            l = l + (4 - l % 4);
-        }
-
-        int x = 0;
-        for (int i = 0; i < l; i += 4) {
+        JPanel beatsPanel = new JPanel();
+        int length = this.mModel.getSong().getLength() + (this.mModel.getSong().getLength() % 4);
+        beatsPanel.setLayout(new GridLayout(1, length));
+        beatsPanel.add(new BeatPanel(-1));
+        for (int i = 0; i < length + 1; i++) {
+            BeatPanel b = new BeatPanel(-1);
+            b.setLayout(new BorderLayout());
             if (i % 16 == 0) {
-                JLabel numLabel = new JLabel(i + "");
-                numLabel.setSize(TEXT_WIDTH, TEXT_HEIGHT);
-                numLabel.setLocation(x, 0);
-                beatPanel.add(numLabel);
+                JLabel beatLabel = new JLabel(i + "");
+                b.add(beatLabel, BorderLayout.SOUTH);
             }
-            x += MeasurePanel.RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH;
+            beatsPanel.add(b);
         }
-        return beatPanel;
+        return beatsPanel;
     }
 
     /**
      * @return a panel containing all note names in this song.
      */
+
     private JPanel noteNameDisplay() {
         JPanel namePanel = new JPanel();
-        ArrayList<String> notes = mModel.getSong().getNoteNames(mModel.getSong().getAllNotesInRange());
-        namePanel.setSize(MeasurePanel.RECTANGLE_HEIGHT, notes.size() * (MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH));
-        int y = LINE_SEPARATOR_WIDTH;
+        ArrayList<Note> notes = this.mModel.getSong().getAllNotesInRange();
+        namePanel.setLayout(new GridLayout(notes.size(), 1));
         for (int i = 0; i < notes.size(); i++) {
-            JLabel nameLabel = new JLabel(notes.get(i));
-            nameLabel.setSize(TEXT_WIDTH, TEXT_HEIGHT);
-            nameLabel.setLocation(0, y);
-            namePanel.add(nameLabel);
-
-            y += MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH;
+            BeatPanel b = new BeatPanel(-1);
+            b.setLabel(notes.get(i));
+            b.setBorder(new MatteBorder(1, 0, 1, 0, Color.BLACK));
+            namePanel.add(b);
         }
         return namePanel;
     }
 
     /**
-     * @param noteNum Note number in the list of notes in this song.
-     * @param beatNum beat number of the panel we wish to get.
-     * @return a point representing the location of the top left corner of the panel.
+     * Initializes this graphic view to have an editor grid, note name displays,
+     * and beat counts.
      */
-    private static Point locOfPanel(int noteNum, int beatNum) {
-        int y = noteNum * (MeasurePanel.RECTANGLE_HEIGHT + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
-        int x = (beatNum / 4) * (MeasurePanel.RECTANGLE_WIDTH + LINE_SEPARATOR_WIDTH) + LINE_SEPARATOR_WIDTH;
-        return new Point(x, y);
-    }
-
-    /**
-     *
-     */
-    private void addNotesToGrid() throws IllegalStateException {
-        if (this.grid == null) {
-            throw new IllegalStateException("Grid not initialized");
-        }
-        ArrayList<Note> notes = this.mModel.getSong().getAllNotesInRange();
-        for (Note n : notes) {
-            ArrayList<ArrayList<Integer>> plays = n.getPlays();
-            for (ArrayList<Integer> play : plays) {
-                int startBeat = play.get(0);
-                int dur = play.get(1);
-
-                int noteNum = notes.indexOf(n);
-                try {
-                    grid[noteNum][startBeat/4].addNote((startBeat % 4), dur);
-                }
-                catch (IllegalStateException e) {
-                    grid[noteNum][startBeat/4].addNote((startBeat % 4), 4 - (startBeat % 4));
-                    grid[noteNum][startBeat/4 + 1].addNote(-1, dur - (4 - startBeat % 4));
-                }
-            }
-        }
-    }
-
-    @Override
     public void initialize(){
+        displayPanel.add(createEditorGrid(), BorderLayout.CENTER);
+        displayPanel.add(noteNameDisplay(), BorderLayout.WEST);
+        displayPanel.add(beatDisplay(), BorderLayout.NORTH);
         this.setVisible(true);
     }
 

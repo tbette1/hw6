@@ -2,12 +2,13 @@ package cs3500.music.model;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Note {
     Pitch pitch;
     int octave;
-    int instrument;
-    int volume;
+    private int instrument;
+    private int volume;
     ArrayList<Attribute> actions;
 
     /**
@@ -25,6 +26,8 @@ public class Note {
 
         this.pitch = p;
         this.octave = octave;
+        this.instrument = instrument;
+        this.volume = volume;
 
         actions = new ArrayList<Attribute>();
         for (int i = 0; i < 32; i++) {
@@ -40,8 +43,8 @@ public class Note {
      */
     public boolean equals(Object o) {
         if (o instanceof Note) {
-            return (o.hashCode() == this.hashCode() &&
-                        this.instrument == ((Note) o).instrument);
+            return (this.pitch == ((Note) o).pitch) && (this.octave == ((Note) o).octave) &&
+                    (this.instrument == ((Note) o).instrument);
         }
         return false;
     }
@@ -51,7 +54,7 @@ public class Note {
      */
     public int hashCode() {
         return ((this.octave - 1) * 8) +
-                this.pitch.getVal();
+                this.pitch.getVal() + this.instrument * 1000;
     }
 
     /**
@@ -105,8 +108,11 @@ public class Note {
      * @param instrument the instrument of this note
      */
     public static Note parseNoteFromInt(int pitch, int instrument, int volume) {
-        int pitchVal = pitch % 8;
-        int octave = pitch / 8;
+        if (pitch < 0 || pitch > 127) {
+            throw new IllegalArgumentException("Out of range.");
+        }
+        int pitchVal = pitch % 12;
+        int octave = (pitch / 12) - 1;
 
         return new Note(Pitch.pitchFromVal(pitchVal), octave, instrument, volume);
     }
@@ -122,6 +128,21 @@ public class Note {
             }
         }
         return false;
+    }
+
+    /**
+     * @param other note to be compared to this one.
+     * @return < 0 if this note is "less than" the given note
+     *         = 0 if this note is "equal to" the given note
+     *         > 0 if this note is "greater than" the given note
+     */
+    public int compareTo(Note other) {
+        if (this.midiValue() - other.midiValue() == 0) {
+            return this.instrument - other.instrument;
+        }
+        else {
+            return this.midiValue() - other.midiValue();
+        }
     }
 
     /**
@@ -180,24 +201,59 @@ public class Note {
      */
     public ArrayList<ArrayList<Integer>> getPlays() {
         ArrayList<ArrayList<Integer>> notesPlayed = new ArrayList<ArrayList<Integer>>();
-        int index = 0;
-        int playing = 0;
         for (int i = 0; i < actions.size(); i++) {
             if (actions.get(i).equals(Attribute.Play)) {
-                notesPlayed.get(index).add(i);
-                playing = 1;
-            }
-            if (actions.get(i).equals(Attribute.Sustain)) {
-                playing ++;
-            }
-            if (actions.get(i).equals(Attribute.Rest) && playing != 0) {
-                notesPlayed.get(index).add(playing);
-                index ++;
-                playing = 0;
+                try {
+                    notesPlayed.add(new ArrayList<Integer>(Arrays.asList(i, noteDuration(i))));
+                }
+                catch (IllegalArgumentException e) {
+                    notesPlayed.add(new ArrayList<Integer>(Arrays.asList(i, 1)));
+                }
             }
         }
         return notesPlayed;
     }
+
+    /**
+     *
+     * @param beat beat on which the played note starts
+     * @return the duration of that note from the play.
+     */
+    private int noteDuration(int beat) {
+        if (beat >= this.actions.size()) {
+            throw new IllegalArgumentException("End of actions list.");
+        }
+        if (!this.actions.get(beat).equals(Attribute.Play)) {
+            throw new IllegalArgumentException("Note does not play at this beat.");
+        }
+        int duration = 1;
+        int index = beat + 1;
+        while (index < this.actions.size()) {
+            duration++;
+            index++;
+        }
+        return duration;
+    }
+    /**
+     * returns this notes instrument
+     * @return; instrument field
+     */
+    public int getInstrument(){
+        return this.instrument;
+    }
+
+    /**
+     * returns this notes volume
+     * @return: volume field
+     */
+    public int getVolume(){
+        return this.volume;
+    }
+
+    /**
+     * method to get midi value
+     */
+    public int midiValue(){
+        return (this.octave + 1) * 12 + this.pitch.ordinal();
+    }
 }
-
-

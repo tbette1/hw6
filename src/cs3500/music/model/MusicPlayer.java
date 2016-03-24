@@ -1,21 +1,23 @@
 package cs3500.music.model;
-
 import java.util.ArrayList;
+
+
 public class MusicPlayer {
-    Song track;
+    public Song track;
 
     /**
      * Constructs a new MusicPlayer object with no track.
      */
     public MusicPlayer() {
-        track = null;
+        track = new Track();
     }
 
     /**
      * Constructs a new MusicPlayer with a given track object.
      */
     public MusicPlayer(Song s) {
-        this.track = s;
+        this.track = new Track();
+        addSong(s, 0);
     }
 
 
@@ -48,7 +50,7 @@ public class MusicPlayer {
      * @param beat beat on which to start playing this note
      */
     public void addNote(Note n, int duration, int beat) {
-        ArrayList<Attribute> toAdd = new ArrayList<Attribute>();
+        ArrayList<Attribute> toAdd = new ArrayList<>();
         toAdd.add(Attribute.Play);
         for (int i = 0; i < duration - 1; i++) {
             toAdd.add(Attribute.Sustain);
@@ -60,39 +62,27 @@ public class MusicPlayer {
      * Deletes an instruction for this note.
      * If there is no instruction at this index,
      * throws an IllegalArgumentException.
-     * @param beat beat on which this note is playing.
-     *             NOTE: will delete all plays and sustains
-     *             surrounding the given beat. For example,
-     *             if the note begins on beat 10 and sustains until
-     *             beat 16, selecting any beat between 10 and 16
-     *             will delete the entire note, play and sustain.
+     * @param beats beats on which this note is playing that
+     *              are to be deleted.
      */
-    public void deleteNote(Note n, int beat) {
-        int start = -1;
-        int end = -1;
-
-        if (n.actions.get(beat).equals(Attribute.Play)) {
-            start = beat;
-        }
-        else {
-            int i = beat;
-            while (n.actions.get(i).equals(Attribute.Sustain) && i >= 0) {
-                i--;
-            }
-            start = i;
-        }
-
-        end = start;
-        while (!n.actions.get(end).equals(Attribute.Rest) && end < n.actions.size()) {
-            end++;
-        }
-        end -= 1;
-
-        ArrayList<Integer> beatsToDelete = new ArrayList<Integer>();
-        for (int i = start; i <= end; i++) {
-            beatsToDelete.add(i);
-        }
-
-        this.track.delete(n, beatsToDelete);
+    public void deleteNote(Note n, ArrayList<Integer> beats) {
+        Note note = this.track.getNotes().get(this.track.getNotes().indexOf(n));
+        track.delete(note, beats);
     }
+
+    /**
+     * gets the tempo of the song
+     * @return: the tempo as an int
+     */
+    int getTempo(){
+        return track.getTempo();
+    }
+
+    /**
+     * returns the size of the musics notes
+     */
+    public int musicLength(){
+        return this.track.getNotes().size();
+    }
+
 }
